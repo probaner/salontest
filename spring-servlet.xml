@@ -1,0 +1,174 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:sec="http://www.springframework.org/schema/security"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+		xsi:schemaLocation="
+			http://www.springframework.org/schema/beans
+	   		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+			http://www.springframework.org/schema/context 
+	   		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	   		http://www.springframework.org/schema/mvc
+			http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+  
+  
+   
+    <!-- <context:annotation-config/> -->  
+    <context:component-scan  base-package="SpringMy.Maven" /> 
+    
+    <!-- Hibernate data -->
+    
+    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/salontest?autoReconnect=true"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root1234"/>
+       
+       
+    </bean>
+    
+    
+    <!-- SessionFactory & DataSource for HibernateDaoSupport Object in Spring -->
+			
+	<bean id="mySessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="myDataSource" />
+		<property name="annotatedClasses">
+			<list>
+			    <value>SpringMy.Maven.db.enities.Category</value>
+			    <value>SpringMy.Maven.db.enities.FileDetail</value>
+			    <value>SpringMy.Maven.db.enities.Users</value>	
+		        <value>SpringMy.Maven.db.enities.PayStatus</value>	 
+		        <value>SpringMy.Maven.db.enities.DiscountData</value>	        		          
+			</list>
+		</property>		
+        <property name="hibernateProperties">
+           <props>
+            <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+            <!-- <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop> -->
+            <prop key="hibernate.jdbc.lob.non_contextual_creation">true</prop>
+	        <prop key="hibernate.show_sql">true</prop>
+	        <prop key="hibernate.format_sql">true</prop>
+	        <prop key="hibernate.use_sql_comments">true</prop>
+	        <!-- <prop key="hibernate.hbm2ddl.auto">update</prop> -->
+	        
+	        <prop key="hibernate.search.autoregister_listeners">false</prop>
+	        <prop key="current_session_context_class">org.hibernate.context.ThreadLocalSessionContext</prop>
+	        <prop key="connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</prop>
+			<prop key="c3p0.min_size">5</prop>
+			<prop key="c3p0.max_size">20</prop>
+			<prop key="c3p0.timeout">1800</prop>
+			<prop key="c3p0.max_statements">0</prop>
+			<prop key="c3p0.acquire_increment">1</prop>
+			<prop key="c3p0.idle_test_period">60</prop>
+			
+		
+	        </props>
+        </property>
+    </bean>
+	 
+    <!-- DB Daos -->
+    
+   <!--  <bean id="usersDAO" class="SpringMy.Maven.db.dao.UsersDAO" >
+	<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>  -->
+    <bean id="fileDetailDAO" class="SpringMy.Maven.db.dao.FileDetailDAO" >
+	<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="categoryDAO" class="SpringMy.Maven.db.dao.CategoryDAO" >
+	<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="payStatusDAO" class="SpringMy.Maven.db.dao.PayStatusDAO" >
+	<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="discountDataDAO" class="SpringMy.Maven.db.dao.DiscountDataDAO" >
+	<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+    
+    <!-- Mail sender bean   -->   
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="smtp.gmail.com" />
+        <property name="port" value="465" />
+        <property name="username" value="salonechnchy@gmail.com" />
+        <property name="password" value="myname123$" />
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.transport.protocol">smtp</prop>
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.starttls.enable">true</prop>
+                <prop key="mail.smtp.ssl.enable">true</prop>                
+            </props>
+        </property>
+    </bean>
+    
+    <!-- File upload bean -->
+   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="20848820" />
+    </bean>
+    
+    
+   <!--  property file reader bean -->  
+    <context:property-placeholder location="WEB-INF/config/lastid.properties"  ignore-unresolvable="true" />
+    <context:property-placeholder location="WEB-INF/config/config.properties" />
+      
+    <bean id="lastIdProperty" class="SpringMy.Maven.property.enities.LastIdProperty">
+        <property name="lastId" value="${db.lastId}"/>        
+     </bean>
+     
+     <bean id="configProperty" class="SpringMy.Maven.property.enities.ConfigProperty">
+        <property name="basePath" value="${base.path}"/>  
+        <property name="maxSize" value="${file.maxsize}"/> 
+        <property name="chargeingTypeCategoryWiseNetive" value="${chargeing.type.category_wise.netive}"/> 
+        <property name="chargeingTypeCategoryWiseForeign" value="${chargeing.type.category_wise.foreign}"/>  
+        <property name="chargeingTypeIndivisualPhotoWiseNetive" value="${chargeing.type.indivisual_photo_wise.netive}"/>
+        <property name="chargeingTypeIndivisualPhotoWiseForeign" value="${chargeing.type.indivisual_photo_wise.foreign}"/>
+        <property name="chargeingTypeOverallNetive" value="${chargeing.type.overall.netive}"/>
+        <property name="chargeingTypeOverallForeign" value="${chargeing.type.overall.foreign}"/>
+        <property name="categoryOne" value="${category.one}"/> 
+        <property name="categoryTwo" value="${category.two}"/> 
+        <property name="categoryThree" value="${category.three}"/> 
+        <property name="categoryFour" value="${category.four}"/> 
+        <property name="categoryOneNetive" value="${category.one.netive}"/> 
+        <property name="categoryTwoNetive" value="${category.two.netive}"/> 
+        <property name="categoryThreeNetive" value="${category.three.netive}"/> 
+        <property name="categoryFourNetive" value="${category.four.netive}"/> 
+        <property name="overall" value="${overall}"/> 
+        <property name="overallNetive" value="${overall.netive}"/>
+        <property name="netiveCountry" value="${netive.country}"/>
+        <property name="netiveCurrencyName" value="${netive.currency.name}"/>
+        <property name="foreignCurrencyName" value="${foreign.currency.name}"/>
+        <property name="closeDate" value="${close.date}"/>
+               
+     </bean>
+   
+   
+    <!-- Common Utillity bean -->   
+     <bean id="commonUtil" class="SpringMy.Maven.Utility.CommonUtil" >
+     <property name="mailSender" ref="mailSender"/>
+     <property name="lastIdProperty" ref="lastIdProperty"/>
+     </bean>
+     
+     <!-- SelectData bean -->   
+     <bean id="selectData" class="SpringMy.Maven.Utility.SelectData"></bean>
+    
+    <!-- Common Service bean -->   
+     <bean id="commonServices" class="SpringMy.Maven.Services.CommonServices" >  
+     <property name="commonUtil" ref="commonUtil"/>     
+     </bean>
+     
+     <!-- Common DB-Service bean -->   
+     <bean id="dbServices" class="SpringMy.Maven.Services.DbServices" >
+     <property name="categoryDAO" ref="categoryDAO"/>
+     <property name="fileDetailDAO" ref="fileDetailDAO"/>
+     <property name="usersDAO" ref="usersDAO"/>
+     <property name="payStatusDAO" ref="payStatusDAO"/>
+     <property name="commonUtil" ref="commonUtil"/>
+     </bean>
+    
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"> 
+        <property name="prefix" value="/WEB-INF/views/" />  
+        <property name="suffix" value=".jsp" />  
+    </bean>  
+      
+    <mvc:resources mapping="/resources/**" location="/resources/theme1/" cache-period="31556926"/>
+      
+</beans> 
